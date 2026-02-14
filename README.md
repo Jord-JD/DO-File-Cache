@@ -11,9 +11,9 @@ Its syntax is designed to closely resemble the PHP `memcache` extension.
 
 ## Installation
 
-You can easily install with composer. Just run `composer require divineomega/do-file-cache`.
+You can easily install with composer. Just run `composer require jord-jd/do-file-cache`.
 
-If you need a PSR-6 cache, check out the [PSR-6 Adapter for DO File Cache](https://github.com/DivineOmega/DO-File-Cache-PSR-6).
+If you need a PSR-6 cache, check out the [PSR-6 Adapter for DO File Cache](https://github.com/Jord-JD/DO-File-Cache-PSR-6).
 
 ## Usage
 

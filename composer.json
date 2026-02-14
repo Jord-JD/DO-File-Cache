@@ -1,31 +1,41 @@
 {
-    "name": "divineomega/do-file-cache",
-    "type": "library",
-    "description": "DO File Cache is a PHP File-based Caching Library. Its syntax is designed to closely resemble the PHP memcache extension.",
-    "keywords": ["cache", "caching", "file cache", "caching library", "library", "php"],
-    "license": "LGPL-3.0-only",
-    "require": {
-        "php": ">=7.1",
-        "ext-zlib": "*",
-        "ext-json": "*"
-    },
-    "require-dev": {
-        "phpunit/phpunit": "^7.0 || ^8.0",
-        "php-coveralls/php-coveralls": "^2.1"
-    },
-    "autoload": {
-        "psr-4": {
-            "DivineOmega\\DOFileCache\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "DivineOmega\\DOFileCache\\Tests\\": "tests/"
-        }
-    },
-    "extra": {
-        "branch-alias": {
-            "dev-master": "1.0-dev"
-        }
+  "name": "jord-jd/do-file-cache",
+  "type": "library",
+  "description": "DO File Cache is a PHP File-based Caching Library. Its syntax is designed to closely resemble the PHP memcache extension.",
+  "keywords": [
+    "cache",
+    "caching",
+    "file cache",
+    "caching library",
+    "library",
+    "php"
+  ],
+  "license": "LGPL-3.0-only",
+  "require": {
+    "php": ">=7.1",
+    "ext-zlib": "*",
+    "ext-json": "*"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^7.0 || ^8.0",
+    "php-coveralls/php-coveralls": "^2.1"
+  },
+  "autoload": {
+    "psr-4": {
+      "DivineOmega\\DOFileCache\\": "src/"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "DivineOmega\\DOFileCache\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "branch-alias": {
+      "dev-master": "3.0-dev"
+    }
+  },
+  "replace": {
+    "jord-jd/do-file-cache": "self.version"
+  }
 }
