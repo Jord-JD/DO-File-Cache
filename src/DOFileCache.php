@@ -1,6 +1,6 @@
 <?php
 
-namespace DivineOmega\DOFileCache;
+namespace JordJD\DOFileCache;
 
 use Exception;
 

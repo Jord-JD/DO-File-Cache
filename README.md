@@ -26,7 +26,7 @@ Before you can do anything with DO File Cache, you must instantiate it and then,
 ```php
 require_once "vendor/autoload.php";
 
-$cache = new \DivineOmega\DOFileCache\DOFileCache();
+$cache = new \JordJD\DOFileCache\DOFileCache();
 
 $cache->changeConfig(["cacheDirectory" => "/tmp/DOFileCacheStorage/"]);
 ```

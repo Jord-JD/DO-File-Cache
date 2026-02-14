@@ -17,25 +17,25 @@
     "ext-json": "*"
   },
   "require-dev": {
-    "phpunit/phpunit": "^7.0 || ^8.0",
+    "phpunit/phpunit": "^9.6",
     "php-coveralls/php-coveralls": "^2.1"
   },
   "autoload": {
     "psr-4": {
-      "DivineOmega\\DOFileCache\\": "src/"
+      "JordJD\\DOFileCache\\": "src/"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "DivineOmega\\DOFileCache\\Tests\\": "tests/"
+      "JordJD\\DOFileCache\\Tests\\": "tests/"
     }
   },
   "extra": {
     "branch-alias": {
-      "dev-master": "4.0-dev"
+      "dev-master": "5.0-dev"
     }
   },
   "replace": {
-    "jord-jd/do-file-cache": "self.version"
+    "divineomega/do-file-cache": "self.version"
   }
 }

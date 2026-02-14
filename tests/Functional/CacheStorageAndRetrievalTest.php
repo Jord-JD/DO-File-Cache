@@ -1,6 +1,6 @@
 <?php
 
-namespace DivineOmega\DOFileCache\Tests;
+namespace JordJD\DOFileCache\Tests;
 
 use PHPUnit\Framework\TestCase;
 
@@ -10,7 +10,7 @@ final class CacheStorageAndRetrievalTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->cache = new \DivineOmega\DOFileCache\DOFileCache();
+        $this->cache = new \JordJD\DOFileCache\DOFileCache();
         $this->cache->changeConfig(['cacheDirectory' => __DIR__.'/Data/']);
     }
 
