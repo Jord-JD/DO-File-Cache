@@ -2,7 +2,6 @@
 
 [![Build Status](https://travis-ci.org/Jord-JD/DO-File-Cache.svg?branch=master)](https://travis-ci.org/Jord-JD/DO-File-Cache)
 [![Coverage Status](https://coveralls.io/repos/github/Jord-JD/DO-File-Cache/badge.svg?branch=master)](https://coveralls.io/github/Jord-JD/DO-File-Cache?branch=master)
-[![StyleCI](https://github.styleci.io/repos/140566511/shield?branch=master)](https://github.styleci.io/repos/140566511)
 ![Packagist](https://img.shields.io/packagist/dt/jord-jd/do-file-cache.svg)
 
 DO File Cache is a PHP File-based Caching Library.
