@@ -77,6 +77,7 @@ class DOFileCache
 
         $filePath = $this->getFilePathFromKey($key);
         $result = file_put_contents($filePath, $cacheFileData);
+        clearstatcache(true, $filePath);
 
         return $result ? true : false;
     }
@@ -92,65 +93,29 @@ class DOFileCache
      */
     public function get($key)
     {
-        $filePath = $this->getFilePathFromKey($key);
+        $cacheObj = $this->readCacheObject($key);
 
-        if (!file_exists($filePath)) {
+        if ($cacheObj === null || !$this->isCacheObjectAvailable($cacheObj)) {
             return false;
         }
 
-        if (!is_readable($filePath)) {
-            return false;
-        }
+        return unserialize($cacheObj->content);
+    }
 
-        $cacheFileData = file_get_contents($filePath);
+    /**
+     * Determine whether a non-expired cache item exists, including falsey values.
+     *
+     * @param string $key
+     *
+     * @throws Exception
+     *
+     * @return bool
+     */
+    public function has($key)
+    {
+        $cacheObj = $this->readCacheObject($key);
 
-        if ($this->config['gzipCompression']) {
-            try {
-                $cacheFileData = gzuncompress($cacheFileData);
-            } catch (\Exception $e) {
-                $cacheFileData = false;
-            }
-        }
-
-        // Bail immediately if the file could not be read, or its data could not be uncompressed
-        if (!$cacheFileData) {
-            return false;
-        }
-
-        $cacheObj = json_decode($cacheFileData);
-
-        // Unable to decode JSON
-        if ($cacheObj === null) {
-            return false;
-        }
-
-        // Check cache object format
-        if (!isset($cacheObj->content) || !isset($cacheObj->expiryTimestamp)) {
-            return false;
-        }
-
-        // Check cache content is serialized
-        if (!$this->isSerialized($cacheObj->content)) {
-            return false;
-        }
-
-        if (!function_exists('sys_getloadavg') && $this->config['unixLoadUpperThreshold'] !== -1) {
-            throw new Exception('Your PHP installation does not support `sys_getloadavg` (Windows?). Please set `unixLoadUpperThreshold` to `-1` in your DOFileCache config.');
-        }
-
-        if ($this->config['unixLoadUpperThreshold'] == -1) {
-            $unixLoad = [0 => -PHP_INT_MAX, 1 => -PHP_INT_MAX, 2 => -PHP_INT_MAX];
-        } else {
-            $unixLoad = sys_getloadavg();
-        }
-
-        if ($cacheObj->expiryTimestamp > time() || $unixLoad[0] >= $this->config['unixLoadUpperThreshold']) {
-            // Cache item has not yet expired or system load is too high
-            return unserialize($cacheObj->content);
-        } else {
-            // Cache item has expired
-            return false;
-        }
+        return $cacheObj !== null && $this->isCacheObjectAvailable($cacheObj);
     }
 
     /**
@@ -182,7 +147,7 @@ class DOFileCache
             return false;
         }
 
-        return @unserialize($string) !== false;
+        return $string === serialize(false) || @unserialize($string) !== false;
     }
 
     /**
@@ -195,12 +160,16 @@ class DOFileCache
     public function delete($key)
     {
         $filePath = $this->getFilePathFromKey($key);
+        clearstatcache(true, $filePath);
 
         if (!file_exists($filePath)) {
             return false;
         }
 
-        return unlink($filePath);
+        $result = unlink($filePath);
+        clearstatcache(true, $filePath);
+
+        return $result;
     }
 
     /**
@@ -222,6 +191,12 @@ class DOFileCache
      */
     private function deleteDirectoryTree($directory)
     {
+        clearstatcache(true, $directory);
+
+        if (!is_dir($directory)) {
+            return true;
+        }
+
         $filePaths = scandir($directory);
 
         foreach ($filePaths as $filePath) {
@@ -230,6 +205,7 @@ class DOFileCache
             }
 
             $fullFilePath = $directory.'/'.$filePath;
+            clearstatcache(true, $fullFilePath);
             if (is_dir($fullFilePath)) {
                 $result = $this->deleteDirectoryTree($fullFilePath);
                 if ($result) {
@@ -260,30 +236,15 @@ class DOFileCache
      */
     public function increment($key, $offset = 1)
     {
-        $filePath = $this->getFilePathFromKey($key);
+        $cacheObj = $this->readCacheObject($key);
 
-        if (!file_exists($filePath)) {
+        if ($cacheObj === null || !$this->isCacheObjectAvailable($cacheObj)) {
             return false;
         }
 
-        if (!is_readable($filePath)) {
-            return false;
-        }
+        $content = unserialize($cacheObj->content);
 
-        $cacheFileData = file_get_contents($filePath);
-
-        if ($this->config['gzipCompression']) {
-            $cacheFileData = gzuncompress($cacheFileData);
-        }
-
-        $cacheObj = json_decode($cacheFileData);
-        $content = $cacheObj->content;
-
-        if ($unserializedContent = @unserialize($content)) {
-            $content = $unserializedContent;
-        }
-
-        if (!$content || !is_numeric($content)) {
+        if (!is_numeric($content)) {
             return false;
         }
 
@@ -318,7 +279,7 @@ class DOFileCache
      */
     public function replace($key, $content, $expiry = 0)
     {
-        if (!$this->get($key)) {
+        if (!$this->has($key)) {
             return false;
         }
 
@@ -349,6 +310,7 @@ class DOFileCache
             $directoryToCreate = $this->config['cacheDirectory'].substr($key, 0, $endOfDirectory);
         }
 
+        clearstatcache(true, $directoryToCreate);
         if (!file_exists($directoryToCreate)) {
             $result = mkdir($directoryToCreate, 0777, true);
             if (!$result) {
@@ -359,5 +321,78 @@ class DOFileCache
         $filePath = $this->config['cacheDirectory'].$key.'.'.$this->config['fileExtension'];
 
         return $filePath;
+    }
+
+    /**
+     * Read and validate a cache object, regardless of the current compression setting.
+     *
+     * @param string $key
+     *
+     * @return object|null
+     */
+    private function readCacheObject($key)
+    {
+        $filePath = $this->getFilePathFromKey($key);
+        clearstatcache(true, $filePath);
+
+        if (!file_exists($filePath) || !is_readable($filePath)) {
+            return null;
+        }
+
+        $cacheFileData = file_get_contents($filePath);
+
+        if ($cacheFileData === false) {
+            return null;
+        }
+
+        $cacheObj = json_decode($cacheFileData);
+
+        if ($cacheObj === null) {
+            $uncompressedData = @gzuncompress($cacheFileData);
+
+            if ($uncompressedData === false) {
+                return null;
+            }
+
+            $cacheObj = json_decode($uncompressedData);
+        }
+
+        if ($cacheObj === null || !isset($cacheObj->content) || !isset($cacheObj->expiryTimestamp)) {
+            return null;
+        }
+
+        if (!$this->isSerialized($cacheObj->content)) {
+            return null;
+        }
+
+        return $cacheObj;
+    }
+
+    /**
+     * Determine whether a cache object is unexpired or may be served under load.
+     *
+     * @param object $cacheObj
+     *
+     * @throws Exception
+     *
+     * @return bool
+     */
+    private function isCacheObjectAvailable($cacheObj)
+    {
+        if ($cacheObj->expiryTimestamp > time()) {
+            return true;
+        }
+
+        if ($this->config['unixLoadUpperThreshold'] == -1) {
+            return false;
+        }
+
+        if (!function_exists('sys_getloadavg')) {
+            throw new Exception('Your PHP installation does not support `sys_getloadavg` (Windows?). Please set `unixLoadUpperThreshold` to `-1` in your DOFileCache config.');
+        }
+
+        $unixLoad = sys_getloadavg();
+
+        return is_array($unixLoad) && $unixLoad[0] >= $this->config['unixLoadUpperThreshold'];
     }
 }
