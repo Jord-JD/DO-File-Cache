@@ -74,6 +74,15 @@ final class BasicTest extends TestCase
         $this->assertEquals(-4, $this->cache->get($key));
     }
 
+    public function testIncrementFromZero()
+    {
+        $key = __FUNCTION__;
+        $this->cache->set($key, 0);
+
+        $this->assertTrue($this->cache->increment($key));
+        $this->assertSame(1, $this->cache->get($key));
+    }
+
     public function testReplace()
     {
         $stored = 'Mary had a little lamb.';
@@ -92,6 +101,16 @@ final class BasicTest extends TestCase
         $this->cache->replace($key, $stored2, strtotime('+ 1 day'));
 
         $this->assertEquals($stored2, $this->cache->get($key));
+    }
+
+    public function testReplaceCachedFalse()
+    {
+        $key = __FUNCTION__;
+        $this->cache->set($key, false);
+
+        $this->assertTrue($this->cache->has($key));
+        $this->assertTrue($this->cache->replace($key, 'replacement'));
+        $this->assertSame('replacement', $this->cache->get($key));
     }
 
     public function testSetCacheThatHasAlreadyExpired()

@@ -60,6 +60,7 @@ final class CacheStorageAndRetrievalTest extends TestCase
         $retrieved = $this->cache->get($key);
 
         $this->assertEquals($stored, $retrieved);
+        $this->assertTrue($this->cache->has($key));
     }
 
     public function testBooleanTrue()
@@ -108,5 +109,25 @@ final class CacheStorageAndRetrievalTest extends TestCase
         $retrieved = $this->cache->get($key);
 
         $this->assertEquals($stored, $retrieved);
+    }
+
+    public function testCompressionCanBeEnabledForExistingUncompressedData()
+    {
+        $key = __FUNCTION__;
+        $this->cache->changeConfig(['gzipCompression' => false]);
+        $this->cache->set($key, 'uncompressed');
+        $this->cache->changeConfig(['gzipCompression' => true]);
+
+        $this->assertSame('uncompressed', $this->cache->get($key));
+    }
+
+    public function testCompressionCanBeDisabledForExistingCompressedData()
+    {
+        $key = __FUNCTION__;
+        $this->cache->changeConfig(['gzipCompression' => true]);
+        $this->cache->set($key, 'compressed');
+        $this->cache->changeConfig(['gzipCompression' => false]);
+
+        $this->assertSame('compressed', $this->cache->get($key));
     }
 }
